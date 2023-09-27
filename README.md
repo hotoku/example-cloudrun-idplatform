@@ -11,7 +11,7 @@ cloud runでの認証のチュートリアル
 - プロジェクト作成: cloudrun-auth-tutorial
 - APIを有効化
 - .envrcを用意
-- ソースレポジトリをclone → .gitignoreに追加
+- ソースレポジトリをclone → .gitignoreに追加したので、このレポジトリには含まれないため、cloneが必要
 - アーキテクチャ
 
 ![arch.png](./resources/arch.png)
@@ -86,7 +86,7 @@ Authorizationヘッダの中には、JWTで情報が書かれているので、
 - 期限切れでないか
 - 署名が正しいか
 
-を検証する。JWTに関する情報: [lik][jwt]
+を検証する。JWTに関する情報: [link][jwt]
 
 次はここから:
 
