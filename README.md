@@ -11,7 +11,7 @@ cloud runでの認証のチュートリアル
 - プロジェクト作成: cloudrun-auth-tutorial
 - APIを有効化
 - .envrcを用意
-- ソースレポジトリをclone → .gitignoreに追加したので、このレポジトリには含まれないため、cloneが必要
+- ソースレポジトリをsubmodule add
 - アーキテクチャ
 
 ![arch.png](./resources/arch.png)
@@ -88,10 +88,39 @@ Authorizationヘッダの中には、JWTで情報が書かれているので、
 
 を検証する。JWTに関する情報: [link][jwt]
 
-次はここから:
+**※ cloud sqlへの接続とsecret managerの部分は飛ばした**
 
-https://cloud.google.com/run/docs/tutorials/identity-platform?hl=ja#sql-connection
+けど、secret managerの部分は読んどいた方が良さそう
+
+**identity platformの設定**
+
+- APIの有効化
+- OAuth同意画面の作成
+  - APIとサービス→認証情報→同意画面を構成
+  - ロゴを登録するとgoogleの検証が必要らしい
+- OAuthクライアントIDとシークレットの作成
+  - APIとサービス→認証情報→認証情報を作成
+- プロバイダの設定
+  - [Identity Platform][provider]の下に設定ページがある
+  - プロバイダを追加→Googleを選択
+  - client idとclient secretを登録
+  - api keyとauth domainを取得→クライアント用コードにコピペ
+
+**OAuthの用語の復習**
+
+- オーナー: アプリのユーザーのこと. データのオーナーなので「オーナー」
+- プロバイダ: データを管理し、アプリにデータを提供している主体。今の場合、Google
+- クライアント: 我々が作っているアプリ
+
+[2023-09-28 09:22:17]
+
+ここまで
+
+次はここから
+
+https://cloud.google.com/run/docs/tutorials/identity-platform?hl=ja#deploy
 
 <!-- link -->
 [tutorial]: https://cloud.google.com/run/docs/tutorials/identity-platform
 [jwt]: https://developer.mamezou-tech.com/blogs/2022/12/08/jwt-auth/
+[provider]: https://console.cloud.google.com/customer-identity/providers?project=_&hl=ja
