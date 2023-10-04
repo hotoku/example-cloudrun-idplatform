@@ -195,7 +195,13 @@ OAuthクライアントにリダイレクト先の登録
 - ここに、`https://cloudrun-auth-tutorial.firebaseapp.com/__/auth/handler`を登録
 - これは、webサーバー(cloud run)から、認証フローを開始するために遷移するurl = firebaseのどっか(実際は、SDKが面倒見てくれるので自分ではコード書かない部分)
 
+ここまでで作業は完了・・なんだけど、実際には起動に失敗した。[2023-10-05]現在。
+[このissue][issue]参照。
+
+解決策としては、`python-docs-samples/run/idp-sql/requirements.txt`に`Werkzeug==2.2.2`を追加すれば良い。
+
 <!-- link -->
 [tutorial]: https://cloud.google.com/run/docs/tutorials/identity-platform
 [jwt]: https://developer.mamezou-tech.com/blogs/2022/12/08/jwt-auth/
 [provider]: https://console.cloud.google.com/customer-identity/providers?project=_&hl=ja
+[issue]: https://github.com/GoogleCloudPlatform/python-docs-samples/issues/10732
