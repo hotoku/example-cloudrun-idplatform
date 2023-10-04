@@ -112,13 +112,88 @@ Authorizationヘッダの中には、JWTで情報が書かれているので、
 - プロバイダ: データを管理し、アプリにデータを提供している主体。今の場合、Google
 - クライアント: 我々が作っているアプリ
 
-[2023-09-28 09:22:17]
+**デプロイ**
 
-ここまで
+Cloud SQLインスタンスの起動
 
-次はここから
+```shell
+gcloud sql instances create predapi \
+    --database-version=POSTGRES_12 \
+    --region=asia-northeast1 \
+    --cpu=2 \
+    --memory=7680MB \
+    --root-password=$(cat db_password)
+```
 
-https://cloud.google.com/run/docs/tutorials/identity-platform?hl=ja#deploy
+認証情報を`python-docs-samples/run/idp-sql/postgres-secrets.json`に記載
+
+シークレットの作成
+
+```shell
+gcloud secrets create idp-sql-secrets \
+    --replication-policy="automatic" \
+    --data-file=postgres-secrets.json
+```
+
+サービスアカウントの作成
+
+```shell
+gcloud iam service-accounts create idp-sql-identity
+```
+
+サービスアカウントに、シークレットへのアクセスを許可
+
+```shell
+gcloud secrets add-iam-policy-binding idp-sql-secrets \
+  --member serviceAccount:idp-sql-identity@cloudrun-auth-tutorial.iam.gserviceaccount.com \
+  --role roles/secretmanager.secretAccessor
+```
+
+サービスアカウントに、Cloud SQLへのアクセスを許可
+
+```shell
+gcloud projects add-iam-policy-binding cloudrun-auth-tutorial \
+  --member serviceAccount:idp-sql-identity@cloudrun-auth-tutorial.iam.gserviceaccount.com \
+  --role roles/cloudsql.client
+```
+
+イメージのビルド
+
+```shell
+gcloud builds submit --tag gcr.io/cloudrun-auth-tutorial/idp-sql
+```
+
+cloud runのデプロイ
+
+```shell
+gcloud run deploy idp-sql \
+    --image gcr.io/cloudrun-auth-tutorial/idp-sql \
+    --allow-unauthenticated \
+    --service-account idp-sql-identity@cloudrun-auth-tutorial.iam.gserviceaccount.com \
+    --add-cloudsql-instances cloudrun-auth-tutorial:asia-northeast1:predapi \
+    --update-secrets CLOUD_SQL_CREDENTIALS_SECRET=idp-sql-secrets:latest
+```
+
+- 未認証のアクセスを許可している(`--allow-unauthenticated`)
+- サービスアカウントを指定している(`--service-account`)
+- Cloud SQLのインスタンスを指定している(`--add-cloudsql-instances`)
+- シークレットを環境変数に入れている(`--update-secrets`)
+  - 例では`latest`を指定しているが、本当は特定のバージョンを指定した方が良いらしい
+    - 「環境変数はインスタンスの起動時に解決されるため」とのこと
+    - そのインスタンスが使っているシークレットが、どのバージョンか分からなくなるから・・かな
+
+Identity Platformにリダイレクト先の登録
+
+- Identity Platform → IDプロバイダ → 「Google」の編集ボタン → リダイレクト先の登録ペインがある
+- ここに、Cloud Runのドメインを登録
+- これは、プロバイダの許可画面からリダイレクトする先 = クライアントのwebサーバー = cloud runのurl
+  - cloud runのurlは、デプロイ時に画面に表示される
+
+OAuthクライアントにリダイレクト先の登録
+
+- APIとサービス → 認証情報 → OAuthクライアントの編集ボタン
+- ここに、`https://cloudrun-auth-tutorial.firebaseapp.com/__/auth/handler`を登録
+- これは、webサーバー(cloud run)から、認証フローを開始するために遷移するurl = firebaseのどっか(実際は、SDKが面倒見てくれるので自分ではコード書かない部分)
 
 <!-- link -->
 [tutorial]: https://cloud.google.com/run/docs/tutorials/identity-platform
